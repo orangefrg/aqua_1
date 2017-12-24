@@ -11,6 +11,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include "DHT.h"
+#include <avr/wdt.h>
 #define ONE_WIRE_BUS 40
 #define DHTPIN 41 
 #define DHTTYPE DHT22
@@ -176,7 +177,7 @@ void setup() {
   lcd.createChar(6,c_relayoff);
   lcd.begin(16,2);
   lcd.clear();
-  lcd.print("Aqua1-20170828");
+  lcd.print("Aqua1-20171224W");
   delay(1000);
   lcd.clear();
   lcd.print("WHOA");
@@ -195,6 +196,9 @@ void setup() {
   tempmode=0;
   lt1=ct;
   lt2=ct;
+  
+  //WATCHDOG
+  wdt_enable(WDTO_4S);
 }
 
 //Основной цикл
@@ -215,6 +219,9 @@ void shTime() {
 // Время перерисовыввается только при смене часов, минут, секунд
   if(ct>=lt1+250||init1==1) {
     if (now.second()!=s||init1==1) {
+      //Каждую секуну сбрасываем пса
+      //Если через 4 секунды не сбросить - будет ресет
+      wdt_reset();
       lcd.setCursor(0,0);
       if (now.hour()<10) {
         lcd.print("0");
